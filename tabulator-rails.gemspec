@@ -13,11 +13,12 @@ Gem::Specification.new do |spec|
   spec.description   = %q{This gem packages the jQuery Tabulator plugin. So you never have to download a custom package through the web interface again.}
   spec.homepage      = "https://rubygems.org/gems/tabulator-rails"
   spec.license       = "MIT"
+  spec.metadata      = { 'source_code_uri' => 'https://github.com/tanvir002700/tabulator-rails' }
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
   # to allow pushing to a single host or delete this section to allow pushing to any host.
   if spec.respond_to?(:metadata)
-    spec.metadata["allowed_push_host"] = "TODO: Set to 'http://mygemserver.com'"
+    spec.metadata["allowed_push_host"] = "https://rubygems.org"
   else
     raise "RubyGems 2.0 or newer is required to protect against " \
       "public gem pushes."
