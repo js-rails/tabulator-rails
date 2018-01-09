@@ -1,8 +1,7 @@
 # Tabulator::Rails
+This gem packages the Jquery Tabulator plugin. So you never have to download a custom package through the web interface again.
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/tabulator/rails`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+See VERSIONS.md to see which versions of tabulator-rails bundle which versions of tabulator.
 
 ## Installation
 
@@ -20,9 +19,22 @@ Or install it yourself as:
 
     $ gem install tabulator-rails
 
+
+And then edit your app/assets/stylesheets/application.css file to look something like:
+/*
+*= require_self
+*= require jqeury
+*= require jquery-ui
+*= require tabulator-rails
+*= require_tree .
+*/
+
+tabulator-rails is dependant on jQuery, jQuery-UI, so make sure you have it in your Gemfile.
+
+
 ## Usage
 
-TODO: Write usage instructions here
+View [Tabulator](http://tabulator.info/quickstart/3.3) for complete useage information.
 
 ## Development
 
