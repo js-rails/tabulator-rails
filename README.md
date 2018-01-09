@@ -1,6 +1,6 @@
 # Tabulator::Rails
 
-[![Gem Version](https://badge.fury.io/rb/tabulators-rails.svg)](https://rubygems.org/gems/tabulator-rails) 
+[![Gem Version](https://badge.fury.io/rb/tabulator-rails.svg)](https://rubygems.org/gems/tabulator-rails) 
 [![Downloads](https://img.shields.io/gem/dt/tabulator-rails.svg)](https://rubygems.org/gems/tabulator-rails)
 [![GitHub last commit (branch)](https://img.shields.io/github/last-commit/tanvir002700/tabulator-rails/master.svg)](https://github.com/tanvir002700/tabulator-rails)
 [![license](https://img.shields.io/github/license/tanvir002700/tabulator-rails.svg)](https://github.com/tanvir002700/tabulator-rails/blob/master/LICENSE)
