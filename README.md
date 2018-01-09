@@ -21,6 +21,7 @@ Or install it yourself as:
 
 
 And then edit your app/assets/stylesheets/application.css file to look something like:
+``` css
 /*
 *= require_self
 *= require jqeury
@@ -28,6 +29,7 @@ And then edit your app/assets/stylesheets/application.css file to look something
 *= require tabulator-rails
 *= require_tree .
 */
+```
 
 tabulator-rails is dependant on jQuery, jQuery-UI, so make sure you have it in your Gemfile.
 
