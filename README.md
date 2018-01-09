@@ -42,7 +42,7 @@ tabulator-rails is dependant on jQuery, jQuery-UI, so make sure you have it in y
 
 ## Usage
 
-View [Tabulator](http://tabulator.info/quickstart/3.3) for complete useage information.
+View [Tabulator](http://tabulator.info/examples/3.3) for complete useage information.
 
 ## Development
 
