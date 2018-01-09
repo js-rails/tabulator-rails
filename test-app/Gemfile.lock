@@ -2,8 +2,6 @@ PATH
   remote: ..
   specs:
     tabulator-rails (0.1.0)
-      jquery-rails (~> 4.3)
-      jquery-ui-rails (~> 6.0)
 
 GEM
   remote: https://rubygems.org/
