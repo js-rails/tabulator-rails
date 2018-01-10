@@ -32,7 +32,7 @@ And then edit your app/assets/stylesheets/application.css file to look something
 *= require_self
 *= require jqeury
 *= require jquery-ui
-*= require tabulator-rails
+*= require tabulator
 *= require_tree .
 */
 ```
@@ -41,7 +41,7 @@ tabulator-rails is dependant on jQuery, jQuery-UI, so make sure you have it in y
 
 And to your app/assets/stylesheets/application.css
 ``` css
-*= require tabulator-rails
+*= require tabulator
 ```
 
 ## Usage
