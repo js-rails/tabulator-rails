@@ -26,7 +26,7 @@ Or install it yourself as:
     $ gem install tabulator-rails
 
 
-And then edit your app/assets/stylesheets/application.css file to look something like:
+And then edit your app/assets/stylesheets/application.js file to look something like:
 ``` css
 /*
 *= require_self
