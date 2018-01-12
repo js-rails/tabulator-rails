@@ -37,7 +37,7 @@ And then edit your app/assets/stylesheets/application.js file to look something 
 */
 ```
 
-tabulator-rails is dependant on jQuery, jQuery-UI, so make sure you have it in your Gemfile.
+**tabulator-rails is dependant on jQuery, jQuery-UI, so make sure you have it in your Gemfile.**
 
 And to your app/assets/stylesheets/application.css
 ``` css
