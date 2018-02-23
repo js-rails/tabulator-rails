@@ -26,22 +26,22 @@ Or install it yourself as:
     $ gem install tabulator-rails
 
 
-And then edit your app/assets/stylesheets/application.css file to look something like:
+And then edit your app/assets/stylesheets/application.js file to look something like:
 ``` css
 /*
 *= require_self
 *= require jqeury
 *= require jquery-ui
-*= require tabulator-rails
+*= require tabulator
 *= require_tree .
 */
 ```
 
-tabulator-rails is dependant on jQuery, jQuery-UI, so make sure you have it in your Gemfile.
+**tabulator-rails is dependant on jQuery, jQuery-UI, so make sure you have it in your Gemfile.**
 
 And to your app/assets/stylesheets/application.css
 ``` css
-*= require tabulator-rails
+*= require tabulator
 ```
 
 ## Usage
