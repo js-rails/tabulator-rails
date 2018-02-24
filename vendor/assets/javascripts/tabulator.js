@@ -3035,7 +3035,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
     //trigger rerender of table in current position
 
-    RowManager.prototype.reRenderInPosition = function (rowCount) {
+    RowManager.prototype.reRenderInPosition = function () {
 
       if (this.getRenderMode() == "virtual") {
 
@@ -3225,6 +3225,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           i = 0;
 
       position = position || 0;
+
+      offset = offset || 0;
 
       if (!position) {
 
@@ -3662,9 +3664,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           this._simpleRender();
         } else {
 
-          var pos = Math.floor(this.element.scrollTop() / this.element[0].scrollHeight * this.displayRowsCount);
-
-          this._virtualRenderFill(pos);
+          this.reRenderInPosition();
 
           this.scrollHorizontal(left);
         }
@@ -16366,6 +16366,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
       integer: function integer(cell, value, parameters) {
 
+        if (value === "" || value === null || typeof value === "undefined") {
+
+          return true;
+        }
+
         value = Number(value);
 
         return typeof value === 'number' && isFinite(value) && Math.floor(value) === value;
@@ -16375,6 +16380,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 
       float: function float(cell, value, parameters) {
+
+        if (value === "" || value === null || typeof value === "undefined") {
+
+          return true;
+        }
 
         value = Number(value);
 
@@ -16386,6 +16396,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
       numeric: function numeric(cell, value, parameters) {
 
+        if (value === "" || value === null || typeof value === "undefined") {
+
+          return true;
+        }
+
         return !isNaN(value);
       },
 
@@ -16393,6 +16408,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 
       string: function string(cell, value, parameters) {
+
+        if (value === "" || value === null || typeof value === "undefined") {
+
+          return true;
+        }
 
         return isNaN(value);
       },
@@ -16402,6 +16422,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
       max: function max(cell, value, parameters) {
 
+        if (value === "" || value === null || typeof value === "undefined") {
+
+          return true;
+        }
+
         return parseFloat(value) <= parameters;
       },
 
@@ -16409,6 +16434,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 
       min: function min(cell, value, parameters) {
+
+        if (value === "" || value === null || typeof value === "undefined") {
+
+          return true;
+        }
 
         return parseFloat(value) >= parameters;
       },
@@ -16418,6 +16448,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
       minLength: function minLength(cell, value, parameters) {
 
+        if (value === "" || value === null || typeof value === "undefined") {
+
+          return true;
+        }
+
         return String(value).length >= parameters;
       },
 
@@ -16426,6 +16461,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
       maxLength: function maxLength(cell, value, parameters) {
 
+        if (value === "" || value === null || typeof value === "undefined") {
+
+          return true;
+        }
+
         return String(value).length <= parameters;
       },
 
@@ -16433,6 +16473,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 
       in: function _in(cell, value, parameters) {
+
+        if (value === "" || value === null || typeof value === "undefined") {
+
+          return true;
+        }
 
         if (typeof parameters == "string") {
 
@@ -16447,6 +16492,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
       regex: function regex(cell, value, parameters) {
 
+        if (value === "" || value === null || typeof value === "undefined") {
+
+          return true;
+        }
+
         var reg = new RegExp(parameters);
 
         return reg.test(value);
@@ -16456,6 +16506,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 
       unique: function unique(cell, value, parameters) {
+
+        if (value === "" || value === null || typeof value === "undefined") {
+
+          return true;
+        }
 
         var unique = true;
 
@@ -16484,7 +16539,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
       required: function required(cell, value, parameters) {
 
-        return value !== "" & value !== null && typeof value != "undefined";
+        return value !== "" & value !== null && typeof value !== "undefined";
       }
 
     };
