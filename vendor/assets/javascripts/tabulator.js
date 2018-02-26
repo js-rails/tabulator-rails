@@ -2,7 +2,7 @@
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-/* Tabulator v3.4.2 (c) Oliver Folkerd */
+/* Tabulator v3.4.3 (c) Oliver Folkerd */
 
 /*
  * This file is part of the Tabulator package.
@@ -5542,6 +5542,15 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
         element.addClass("tabulator").attr("role", "grid").empty();
 
+        //set table height
+
+        if (options.height) {
+
+          options.height = isNaN(options.height) ? options.height : options.height + "px";
+
+          this.element.css({ "height": options.height });
+        }
+
         this.rowManager.initialize();
 
         this._detectBrowser();
@@ -5570,15 +5579,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         if (typeof options.placeholder == "string") {
 
           options.placeholder = $("<div class='tabulator-placeholder'><span>" + options.placeholder + "</span></div>");
-        }
-
-        //set table height
-
-        if (options.height) {
-
-          options.height = isNaN(options.height) ? options.height : options.height + "px";
-
-          this.element.css({ "height": options.height });
         }
 
         //build table elements
@@ -8857,7 +8857,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         self.mouseClick = true;
       });
 
-      element.on("focus", function (e) {
+      element.on("focus", function (e, force) {
 
         self.edit(cell, e);
       });
@@ -8871,6 +8871,16 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           element = cell.getElement(),
           cellEditor,
           component;
+
+      //if currently editing another cell trigger blur to trigger save and validate actions
+
+
+      if (this.currentCell) {
+
+        cell.getElement().focus();
+
+        return;
+      }
 
       //handle successfull value change
 
@@ -15994,12 +16004,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
         if (isNaN(a)) {
 
-          return -1;
-
-          if (isNaN(b)) {
-
-            return 0;
-          }
+          return isNaN(b) ? 0 : -1;
         } else if (isNaN(b)) {
 
           return 1;
@@ -16161,12 +16166,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
         if (!Array.isArray(a)) {
 
-          return -1;
-
-          if (!Array.isArray(b)) {
-
-            return 0;
-          }
+          return !Array.isArray(b) ? 0 : -1;
         } else if (!Array.isArray(b)) {
 
           return 1;
