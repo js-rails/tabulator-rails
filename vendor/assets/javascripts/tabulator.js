@@ -2,7 +2,7 @@
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-/* Tabulator v3.4.3 (c) Oliver Folkerd */
+/* Tabulator v3.4.4 (c) Oliver Folkerd */
 
 /*
  * This file is part of the Tabulator package.
@@ -1079,7 +1079,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
           if (def.field) {
 
-            self.table.extensions.localize.bind("columns." + def.field, function (value) {
+            self.table.extensions.localize.bind("columns|" + def.field, function (value) {
 
               self.element.attr("title", value || def.title);
             });
@@ -1464,7 +1464,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
         if (def.field) {
 
-          table.extensions.localize.bind("columns." + def.field, function (text) {
+          table.extensions.localize.bind("columns|" + def.field, function (text) {
 
             titleElement.val(text || def.title || "&nbsp");
           });
@@ -1476,7 +1476,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
         if (def.field) {
 
-          table.extensions.localize.bind("columns." + def.field, function (text) {
+          table.extensions.localize.bind("columns|" + def.field, function (text) {
 
             self._formatColumnHeaderTitle(titleHolderElement, text || def.title || "&nbsp");
           });
@@ -2306,9 +2306,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
     RowManager.prototype.scrollToRow = function (row) {
 
-      var rowIndex;
-
-      rowIndex = this.displayRows.indexOf(row);
+      var rowIndex = this.displayRows.indexOf(row);
 
       if (rowIndex > -1) {
 
@@ -2459,7 +2457,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
         var row = self.addRow(item, pos, index, true);
 
-        rows.push(row.getComponent());
+        rows.push(row);
       });
 
       if (this.table.options.groupBy && this.table.extExists("groupRows")) {
@@ -3271,11 +3269,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
         //check if position is too close to bottom of table
 
-        var heightOccpied = (self.displayRowsCount - position) * self.vDomRowHeight;
+        var heightOccpied = (self.displayRowsCount - position + 1) * self.vDomRowHeight;
 
         if (heightOccpied < self.height) {
 
-          position -= Math.ceil((self.height - heightOccpied) / self.displayRowsCount);
+          position -= Math.ceil((self.height - heightOccpied) / self.vDomRowHeight);
 
           if (position < 0) {
 
@@ -6039,7 +6037,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           this.extensions.columnCalcs.recalc(this.rowManager.displayRows);
         }
 
-        return row;
+        return row.getComponent();
       },
 
       //update a row if it exitsts otherwise create it
@@ -7295,8 +7293,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
     Localize.prototype.getText = function (path, value) {
 
-      var path = value ? path + "." + value : path,
-          pathArray = path.split("."),
+      var path = value ? path + "|" + value : path,
+          pathArray = path.split("|"),
           text = this._getLangElement(pathArray, this.locale);
 
       // if(text === false){
@@ -10039,13 +10037,13 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
           if (field) {
 
-            self.table.extensions.localize.bind("headerFilters.columns." + column.definition.field, function (value) {
+            self.table.extensions.localize.bind("headerFilters|columns|" + column.definition.field, function (value) {
 
               editorElement.attr("placeholder", typeof value !== "undefined" && value ? value : self.table.extensions.localize.getText("headerFilters.default"));
             });
           } else {
 
-            self.table.extensions.localize.bind("headerFilters.default", function (value) {
+            self.table.extensions.localize.bind("headerFilters|default", function (value) {
 
               editorElement.attr("placeholdder", typeof self.column.definition.headerFilterPlaceholder !== "undefined" && self.column.definition.headerFilterPlaceholder ? self.column.definition.headerFilterPlaceholder : value);
             });
@@ -10993,7 +10991,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             percentValue,
             color,
             legend,
-            legendColor;
+            legendColor,
+            top,
+            left,
+            right,
+            bottom;
 
         //make sure value is in range
 
@@ -11007,7 +11009,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
         percent = (max - min) / 100;
 
-        percentValue = 100 - Math.round((percentValue - min) / percent);
+        percentValue = Math.round((percentValue - min) / percent);
 
         //set bar color
 
@@ -11036,7 +11038,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
               index = Math.min(index, formatterParams.color.length - 1);
 
-              color = formatterParams.color[formatterParams.color.length - 1 - index];
+              index = Math.max(index, 0);
+
+              color = formatterParams.color[index];
 
               break;
             }
@@ -11103,7 +11107,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
               index = Math.min(index, formatterParams.legendColor.length - 1);
 
-              legendColor = formatterParams.legendColor[formatterParams.legendColor.length - 1 - index];
+              index = Math.max(index, 0);
+
+              legendColor = formatterParams.legendColor[index];
 
               break;
             }
@@ -11124,7 +11130,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
         element.attr("aria-label", percentValue);
 
-        return "<div style='position:absolute; top:8px; bottom:8px; left:4px; right:" + percentValue + "%; margin-right:4px; background-color:" + color + "; display:inline-block;' data-max='" + max + "' data-min='" + min + "'></div>" + (legend ? "<div style='position:absolute; top:4px; left:0; text-align:center; width:100%; color:" + legendColor + ";'>" + legend + "</div>" : "");
+        return "<div style='position:absolute; top:8px; bottom:8px; left:4px; right:4px;'><div style='position:relative; height:100%; width:calc(" + percentValue + "%); background-color:" + color + "; display:inline-block;' data-max='" + max + "' data-min='" + min + "'></div></div>" + (legend ? "<div style='position:absolute; top:4px; left:0; text-align:center; width:100%; color:" + legendColor + ";'>" + legend + "</div>" : "");
       },
 
       //background color
@@ -12234,7 +12240,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       }]; //starting state of group
 
 
-      self.table.extensions.localize.bind("groups.item", function (langValue, lang) {
+      self.table.extensions.localize.bind("groups|item", function (langValue, lang) {
 
         self.headerGenerator[0] = function (value, count, data) {
           //header layout function
@@ -14007,42 +14013,42 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       //bind localizations
 
 
-      self.table.extensions.localize.bind("pagination.first", function (value) {
+      self.table.extensions.localize.bind("pagination|first", function (value) {
 
         self.firstBut.html(value);
       });
 
-      self.table.extensions.localize.bind("pagination.first_title", function (value) {
+      self.table.extensions.localize.bind("pagination|first_title", function (value) {
 
         self.firstBut.attr("aria-label", value).attr("title", value);
       });
 
-      self.table.extensions.localize.bind("pagination.prev", function (value) {
+      self.table.extensions.localize.bind("pagination|prev", function (value) {
 
         self.prevBut.html(value);
       });
 
-      self.table.extensions.localize.bind("pagination.prev_title", function (value) {
+      self.table.extensions.localize.bind("pagination|prev_title", function (value) {
 
         self.prevBut.attr("aria-label", value).attr("title", value);
       });
 
-      self.table.extensions.localize.bind("pagination.next", function (value) {
+      self.table.extensions.localize.bind("pagination|next", function (value) {
 
         self.nextBut.html(value);
       });
 
-      self.table.extensions.localize.bind("pagination.next_title", function (value) {
+      self.table.extensions.localize.bind("pagination|next_title", function (value) {
 
         self.nextBut.attr("aria-label", value).attr("title", value);
       });
 
-      self.table.extensions.localize.bind("pagination.last", function (value) {
+      self.table.extensions.localize.bind("pagination|last", function (value) {
 
         self.lastBut.html(value);
       });
 
-      self.table.extensions.localize.bind("pagination.last_title", function (value) {
+      self.table.extensions.localize.bind("pagination|last_title", function (value) {
 
         self.lastBut.attr("aria-label", value).attr("title", value);
       });
