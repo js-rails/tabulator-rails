@@ -2,7 +2,7 @@
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-/* Tabulator v3.4.4 (c) Oliver Folkerd */
+/* Tabulator v3.4.5 (c) Oliver Folkerd */
 
 /*
  * This file is part of the Tabulator package.
@@ -1382,10 +1382,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
         if (def.visible) {
 
-          self.show();
+          self.show(true);
         } else {
 
-          self.hide();
+          self.hide(true);
         }
       }
 
@@ -1797,7 +1797,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
     //show column
 
-    Column.prototype.show = function () {
+    Column.prototype.show = function (silent) {
 
       if (!this.visible) {
 
@@ -1826,13 +1826,16 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           this.table.extensions.persistence.save("columns");
         }
 
-        this.table.options.groupVisibilityChanged(this.getComponent(), true);
+        if (!silent) {
+
+          this.table.options.columnVisibilityChanged(this.getComponent(), true);
+        }
       }
     };
 
     //hide column
 
-    Column.prototype.hide = function () {
+    Column.prototype.hide = function (silent) {
 
       if (this.visible) {
 
@@ -1861,7 +1864,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           this.table.extensions.persistence.save("columns");
         }
 
-        this.table.options.groupVisibilityChanged(this.getComponent(), false);
+        if (!silent) {
+
+          this.table.options.columnVisibilityChanged(this.getComponent(), false);
+        }
       }
     };
 
@@ -2931,6 +2937,16 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       this.scrollLeft = left;
 
       this.element.scrollLeft(left);
+
+      if (this.table.options.groupBy) {
+
+        this.table.extensions.groupRows.scrollHeaders(left);
+      }
+
+      if (this.table.extExists("columnCalcs")) {
+
+        this.table.extensions.columnCalcs.scrollHorizontal(left);
+      }
     };
 
     //set active data set
@@ -3062,6 +3078,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
         var topOffset = false;
 
+        var left = this.scrollLeft;
+
         for (var i = this.vDomTop; i <= this.vDomBottom; i++) {
 
           if (this.displayRows[i]) {
@@ -3078,6 +3096,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         }
 
         this._virtualRenderFill(topRow === false ? this.displayRows.length - 1 : topRow, true, topOffset || 0);
+
+        this.scrollHorizontal(left);
       } else {
 
         this.renderTable();
@@ -7717,7 +7737,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           this.msgElement.append(this.loadingElement);
         } else {
 
-          this.msgElement.append(this.table.extensions.localize.getText("ajax.loading"));
+          this.msgElement.append(this.table.extensions.localize.getText("ajax|loading"));
         }
 
         this.table.element.append(this.loaderElement);
@@ -7735,7 +7755,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         this.msgElement.append(this.errorElement);
       } else {
 
-        this.msgElement.append(this.table.extensions.localize.getText("ajax.error"));
+        this.msgElement.append(this.table.extensions.localize.getText("ajax|error"));
       }
 
       this.table.element.append(this.loaderElement);
@@ -10039,7 +10059,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
             self.table.extensions.localize.bind("headerFilters|columns|" + column.definition.field, function (value) {
 
-              editorElement.attr("placeholder", typeof value !== "undefined" && value ? value : self.table.extensions.localize.getText("headerFilters.default"));
+              editorElement.attr("placeholder", typeof value !== "undefined" && value ? value : self.table.extensions.localize.getText("headerFilters|default"));
             });
           } else {
 
@@ -11444,6 +11464,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         row.extensions.frozen = true;
 
         this.topElement.append(row.getElement());
+
+        row.initialize();
+
+        row.normalizeHeight();
 
         this.table.rowManager.adjustTableSize();
 
@@ -14347,11 +14371,17 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
     Page.prototype.trigger = function () {
 
+      var left;
+
       switch (this.mode) {
 
         case "local":
 
+          left = this.table.rowManager.scrollLeft;
+
           this.table.rowManager.refreshActiveData();
+
+          this.table.rowManager.scrollHorizontal(left);
 
           this.table.options.pageLoaded(this.getPage());
 
@@ -14463,13 +14493,19 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
     Page.prototype._parseRemoteData = function (data) {
 
+      var left;
+
       if (data[this.paginationDataReceivedNames.last_page]) {
 
         if (data[this.paginationDataReceivedNames.data]) {
 
           this.max = parseInt(data[this.paginationDataReceivedNames.last_page]);
 
+          left = this.table.rowManager.scrollLeft;
+
           this.table.rowManager.setData(data[this.paginationDataReceivedNames.data]);
+
+          this.table.rowManager.scrollHorizontal(left);
 
           this.table.options.pageLoaded(this.getPage());
         } else {
