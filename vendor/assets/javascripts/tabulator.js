@@ -2,7 +2,7 @@
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-/* Tabulator v3.4.5 (c) Oliver Folkerd */
+/* Tabulator v3.4.6 (c) Oliver Folkerd */
 
 /*
  * This file is part of the Tabulator package.
@@ -4923,7 +4923,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
       if (this.table.extExists("edit", true)) {
 
-        return this.table.extensions.edit.edit(this, false, force);
+        return this.table.extensions.edit.editCell(this, false, force);
       }
     };
 
@@ -5543,9 +5543,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
       _clearObjectPointers: function _clearObjectPointers() {
 
-        this.options.columns = this.options.columns.splice(0);
+        this.options.columns = this.options.columns.slice(0);
 
-        this.options.data = this.options.data.splice(0);
+        this.options.data = this.options.data.slice(0);
       },
 
       //build tabulator element
@@ -8741,6 +8741,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
       this.mouseClick = false; //hold mousedown state to prevent click binding being overriden by editor opening
 
+
+      this.recursionBlock = false; //prevent focus recursion
+
+
+      this.invalidEdit = false;
     };
 
     //initialize column editor
@@ -8822,13 +8827,18 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
       var cell = this.currentCell;
 
-      this.currentCell = false;
+      this.invalidEdit = false;
 
-      cell.getElement().removeClass("tabulator-validation-fail");
+      if (cell) {
 
-      cell.getElement().removeClass("tabulator-editing").empty();
+        this.currentCell = false;
 
-      cell.row.getElement().removeClass("tabulator-row-editing");
+        cell.getElement().removeClass("tabulator-validation-fail");
+
+        cell.getElement().removeClass("tabulator-editing").empty();
+
+        cell.row.getElement().removeClass("tabulator-row-editing");
+      }
     };
 
     Edit.prototype.cancelEdit = function () {
@@ -8875,10 +8885,29 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         self.mouseClick = true;
       });
 
-      element.on("focus", function (e, force) {
+      element.on("focus", function (e) {
 
-        self.edit(cell, e);
+        if (!self.recursionBlock) {
+
+          self.edit(cell, e, false);
+        }
       });
+    };
+
+    Edit.prototype.focusCellNoEvent = function (cell) {
+
+      this.recursionBlock = true;
+
+      cell.getElement().focus();
+
+      this.recursionBlock = false;
+    };
+
+    Edit.prototype.editCell = function (cell, forceEdit) {
+
+      this.focusCellNoEvent(cell);
+
+      this.edit(cell, false, forceEdit);
     };
 
     Edit.prototype.edit = function (cell, e, forceEdit) {
@@ -8890,12 +8919,18 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           cellEditor,
           component;
 
-      //if currently editing another cell trigger blur to trigger save and validate actions
+      //prevent editing if another cell is refusing to leave focus (eg. validation fail)
 
 
       if (this.currentCell) {
 
-        cell.getElement().focus();
+        if (!this.invalidEdit) {
+
+          this.cancelEdit();
+        } else {
+
+          return;
+        }
 
         return;
       }
@@ -8905,25 +8940,35 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
       function success(value) {
 
-        var valid = true;
+        if (self.currentCell === cell) {
 
-        if (cell.column.extensions.validate && self.table.extExists("validate")) {
+          var valid = true;
 
-          valid = self.table.extensions.validate.validate(cell.column.extensions.validate, cell.getComponent(), value);
-        }
+          if (cell.column.extensions.validate && self.table.extExists("validate")) {
 
-        if (valid === true) {
+            valid = self.table.extensions.validate.validate(cell.column.extensions.validate, cell.getComponent(), value);
+          }
 
-          self.clearEditor();
+          if (valid === true) {
 
-          cell.setValue(value, true);
+            self.clearEditor();
+
+            cell.setValue(value, true);
+          } else {
+
+            self.invalidEdit = true;
+
+            cell.getElement().addClass("tabulator-validation-fail");
+
+            self.focusCellNoEvent(cell);
+
+            rendered();
+
+            self.table.options.validationFailed(cell.getComponent(), value, valid);
+          }
         } else {
 
-          cell.getElement().addClass("tabulator-validation-fail");
-
-          rendered();
-
-          self.table.options.validationFailed(cell.getComponent(), value, valid);
+          console.warn("Edit Success Error - cannot call success on a cell that is no longer being edited");
         }
       };
 
@@ -8932,7 +8977,13 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
       function cancel() {
 
-        self.cancelEdit();
+        if (self.currentCell === cell) {
+
+          self.cancelEdit();
+        } else {
+
+          console.warn("Edit Success Error - cannot call cancel on a cell that is no longer being edited");
+        }
       };
 
       function onRendered(callback) {
@@ -11150,7 +11201,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
         element.attr("aria-label", percentValue);
 
-        return "<div style='position:absolute; top:8px; bottom:8px; left:4px; right:4px;'><div style='position:relative; height:100%; width:calc(" + percentValue + "%); background-color:" + color + "; display:inline-block;' data-max='" + max + "' data-min='" + min + "'></div></div>" + (legend ? "<div style='position:absolute; top:4px; left:0; text-align:center; width:100%; color:" + legendColor + ";'>" + legend + "</div>" : "");
+        return "<div style='position:absolute; top:8px; bottom:8px; left:4px; right:4px;'  data-max='" + max + "' data-min='" + min + "'><div style='position:relative; height:100%; width:calc(" + percentValue + "%); background-color:" + color + "; display:inline-block;'></div></div>" + (legend ? "<div style='position:absolute; top:4px; left:0; text-align:center; width:100%; color:" + legendColor + ";'>" + legend + "</div>" : "");
       },
 
       //background color
