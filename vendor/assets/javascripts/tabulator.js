@@ -2,7 +2,7 @@
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-/* Tabulator v3.5.0 (c) Oliver Folkerd */
+/* Tabulator v3.5.1 (c) Oliver Folkerd */
 
 /*
  * This file is part of the Tabulator package.
@@ -3950,15 +3950,15 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
       if (this.vDomTop) {
 
-        var _index = this.vDomTop - 1,
-            topRow = rows[_index],
+        var index = this.vDomTop - 1,
+            topRow = rows[index],
             topRowHeight = topRow.getHeight() || this.vDomRowHeight;
 
         //hide top row if needed
 
         if (topDiff >= topRowHeight) {
 
-          this.styleRow(topRow, _index);
+          this.styleRow(topRow, index);
 
           table.prepend(topRow.getElement());
 
@@ -3978,10 +3978,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
           if (this.vDomTopPad < 0) {
 
-            this.vDomTopPad = _index * this.vDomRowHeight;
+            this.vDomTopPad = index * this.vDomRowHeight;
           }
 
-          if (!_index) {
+          if (!index) {
 
             this.vDomTopPad = 0;
           }
@@ -4038,15 +4038,15 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
       if (this.vDomBottom < this.displayRowsCount - 1) {
 
-        var _index2 = this.vDomBottom + 1,
-            bottomRow = rows[_index2],
+        var index = this.vDomBottom + 1,
+            bottomRow = rows[index],
             bottomRowHeight = bottomRow.getHeight() || this.vDomRowHeight;
 
         //hide bottom row if needed
 
         if (bottomDiff >= bottomRowHeight) {
 
-          this.styleRow(bottomRow, _index2);
+          this.styleRow(bottomRow, index);
 
           table.append(bottomRow.getElement());
 
@@ -4064,7 +4064,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
           this.vDomBottomPad -= bottomRowHeight;
 
-          if (this.vDomBottomPad < 0 || _index2 == this.displayRowsCount - 1) {
+          if (this.vDomBottomPad < 0 || index == this.displayRowsCount - 1) {
 
             this.vDomBottomPad = 0;
           }
@@ -4576,7 +4576,20 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
     Row.prototype.calcHeight = function () {
 
-      this.height = this.element[0].clientHeight;
+      var maxHeight = 0,
+          minHeight = this.element[0].clientHeight;
+
+      this.cells.forEach(function (cell) {
+
+        var height = cell.getHeight();
+
+        if (height > maxHeight) {
+
+          maxHeight = height;
+        }
+      });
+
+      this.height = Math.max(maxHeight, minHeight);
 
       this.outerHeight = this.element[0].offsetHeight;
     };
@@ -4847,6 +4860,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 
     Row.prototype.delete = function () {
+
+      var index = this.table.rowManager.getRowIndex(this);
 
       this.deleteActual();
 
@@ -8356,7 +8371,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
       if (!connections.length && selectors) {
 
-        console.log("Table Connection Error - No tables matching selector found", selectors);
+        console.warn("Table Connection Error - No tables matching selector found", selectors);
       }
     };
 
@@ -14794,11 +14809,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             width,
             attributes;
 
-        //list of possible attributes
-
-
-        var attribList = ["title", "field", "align", "width", "minWidth", "frozen", "sortable", "sorter", "formatter", "cellClick", "cellDblClick", "cellContext", "editable", "editor", "visible", "cssClass", "tooltip", "tooltipHeader", "editableTitle", "headerFilter", "mutator", "mutateType", "accessor"];
-
         if (col) {
 
           exists = true;
@@ -14824,8 +14834,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
         attributes = header[0].attributes;
 
-        //check for tablator inline options
+        // //check for tablator inline options
 
+
+        self._extractOptions(header, col);
 
         for (var i in attributes) {
 
@@ -14836,13 +14848,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
             name = attrib.name.replace("tabulator-", "");
 
-            attribList.forEach(function (key) {
-
-              if (key.toLowerCase() == name) {
-
-                col[key] = self._attribValue(attrib.value);
-              }
-            });
+            col[name] = self._attribValue(attrib.value);
           }
         }
 
@@ -14865,9 +14871,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
     HtmlTableImport.prototype._generateBlankHeaders = function (element) {
 
-      var self = this;
-
-      var headers = $("tr:first td", element);
+      var self = this,
+          headers = $("tr:first td", element),
+          rows = $("tbody tr", element);
 
       headers.each(function (index) {
 
@@ -15673,6 +15679,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
       this.endMove = this.endMove.bind(this);
 
+      this.tableRowDropEvent = false;
+
       this.connection = false;
 
       this.connections = [];
@@ -15902,9 +15910,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
       this._unbindMouseMove();
 
-      this.placeholderElement.after(this.moving.getElement());
+      if (!this.connection) {
 
-      this.placeholderElement.detach();
+        this.placeholderElement.after(this.moving.getElement());
+
+        this.placeholderElement.detach();
+      }
 
       this.hoverElement.detach();
 
@@ -16029,7 +16040,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           }
         });
 
-        self.table.element.on("mouseup", self.tableRowDrop.bind(self));
+        self.tableRowDropEvent = self.tableRowDrop.bind(self);
+
+        self.table.element.on("mouseup", self.tableRowDropEvent);
 
         this.table.options.movableRowsReceivingStart(row, table);
 
@@ -16065,7 +16078,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           }
         });
 
-        self.table.element.off("mouseup", self.tableRowDrop.bind(self));
+        self.table.element.off("mouseup", self.tableRowDropEvent);
 
         this.table.options.movableRowsReceivingStop(table);
       } else {
@@ -17025,14 +17038,14 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
       var footer = this.table.footerManager.element;
 
-      if (footer.innerWidth() - footer[0].scrollWidth < 0) {
+      if (Math.ceil(footer.innerWidth()) - footer[0].scrollWidth < 0) {
 
         this.pagesElement.hide();
       } else {
 
         this.pagesElement.show();
 
-        if (footer.innerWidth() - footer[0].scrollWidth < 0) {
+        if (Math.ceil(footer.innerWidth()) - footer[0].scrollWidth < 0) {
 
           this.pagesElement.hide();
         }
@@ -18270,19 +18283,22 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
       if (row) {
 
-        var self = this;
+        if (self.selectedRows.indexOf(row) == -1) {
 
-        row.extensions.select.selected = true;
+          var self = this;
 
-        row.getElement().addClass("tabulator-selected");
+          row.extensions.select.selected = true;
 
-        self.selectedRows.push(row);
+          row.getElement().addClass("tabulator-selected");
 
-        if (!silent) {
+          self.selectedRows.push(row);
 
-          self.table.options.rowSelected(row.getComponent());
+          if (!silent) {
 
-          self._rowSelectionChanged();
+            self.table.options.rowSelected(row.getComponent());
+
+            self._rowSelectionChanged();
+          }
         }
       } else {
 
