@@ -2,7 +2,7 @@
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-/* Tabulator v3.5.1 (c) Oliver Folkerd */
+/* Tabulator v3.5.2 (c) Oliver Folkerd */
 
 /*
  * This file is part of the Tabulator package.
@@ -2780,9 +2780,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             index = dispRows[0];
           } else {
 
-            if (activeRows.length) {
+            if (this.activeRows.length) {
 
-              index = activeRows[activeRows.length - 1];
+              index = this.activeRows[this.activeRows.length - 1];
 
               top = false;
             }
@@ -2793,7 +2793,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
             index = dispRows[dispRows.length - 1];
 
-            top = true;
+            top = dispRows.length < this.table.extensions.page.getPageSize() ? false : true;
           }
         }
       }
@@ -3898,7 +3898,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
         //if big scroll redraw table;
 
+        var left = this.scrollLeft;
+
         this._virtualRenderFill(Math.floor(this.element[0].scrollTop / this.element[0].scrollHeight * this.displayRowsCount));
+
+        this.scrollHorizontal(left);
       } else {
 
         if (dir) {
@@ -5900,7 +5904,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
         paginationSize: false, //set number of rows to a page
 
-        paginationButtonCount: 5, // set count of page button 
+        paginationButtonCount: 5, // set count of page button
 
         paginationElement: false, //element to hold pagination numbers
 
@@ -7489,9 +7493,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
         var cell = false;
 
-        if (this.table.extExists("edit", true)) {
+        if (this.extExists("edit", true)) {
 
-          cell = this.table.extensions.edit.currentCell;
+          cell = this.extensions.edit.currentCell;
 
           if (cell) {
 
@@ -7508,9 +7512,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
         var cell = false;
 
-        if (this.table.extExists("edit", true)) {
+        if (this.extExists("edit", true)) {
 
-          cell = this.table.extensions.edit.currentCell;
+          cell = this.extensions.edit.currentCell;
 
           if (cell) {
 
@@ -7527,9 +7531,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
         var cell = false;
 
-        if (this.table.extExists("edit", true)) {
+        if (this.extExists("edit", true)) {
 
-          cell = this.table.extensions.edit.currentCell;
+          cell = this.extensions.edit.currentCell;
 
           if (cell) {
 
@@ -7546,9 +7550,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
         var cell = false;
 
-        if (this.table.extExists("edit", true)) {
+        if (this.extExists("edit", true)) {
 
-          cell = this.table.extensions.edit.currentCell;
+          cell = this.extensions.edit.currentCell;
 
           if (cell) {
 
@@ -7565,9 +7569,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
         var cell = false;
 
-        if (this.table.extExists("edit", true)) {
+        if (this.extExists("edit", true)) {
 
-          cell = this.table.extensions.edit.currentCell;
+          cell = this.extensions.edit.currentCell;
 
           if (cell) {
 
@@ -7584,9 +7588,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
         var cell = false;
 
-        if (this.table.extExists("edit", true)) {
+        if (this.extExists("edit", true)) {
 
-          cell = this.table.extensions.edit.currentCell;
+          cell = this.extensions.edit.currentCell;
 
           if (cell) {
 
@@ -9217,7 +9221,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
             cell.column = column;
 
-            cell.setWidth(column.getWidth());
+            cell.setWidth(column.width);
 
             column.cells.push(cell);
 
@@ -9500,7 +9504,16 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
             data = self.generateContent();
 
-            e.originalEvent.clipboardData.setData('text/plain', data);
+            if (window.clipboardData && window.clipboardData.setData) {
+
+              window.clipboardData.setData('Text', data);
+            } else if (e.clipboardData && e.clipboardData.setData) {
+
+              e.clipboardData.setData('text/plain', data);
+            } else if (e.originalEvent && e.originalEvent.clipboardData.setData) {
+
+              e.originalEvent.clipboardData.setData('text/plain', data);
+            }
 
             self.table.options.clipboardCopied(data);
 
@@ -11968,7 +11981,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           //change text inputs to search inputs to allow for clearing of field
 
 
-          if (attrType == "text") {
+          if (attrType == "text" && this.table.browser !== "ie") {
 
             editorElement.attr("type", "search");
 

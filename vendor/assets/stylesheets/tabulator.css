@@ -1,4 +1,4 @@
-/* Tabulator v3.5.1 (c) Oliver Folkerd */
+/* Tabulator v3.5.2 (c) Oliver Folkerd */
 .tabulator {
   position: relative;
   border: 1px solid #999;
@@ -126,6 +126,11 @@
 
 .tabulator .tabulator-header .tabulator-col .tabulator-header-filter svg {
   margin-top: 3px;
+}
+
+.tabulator .tabulator-header .tabulator-col .tabulator-header-filter input::-ms-clear {
+  width: 0;
+  height: 0;
 }
 
 .tabulator .tabulator-header .tabulator-col.tabulator-sortable .tabulator-col-title {
