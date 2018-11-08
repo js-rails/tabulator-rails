@@ -1,6 +1,6 @@
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-/* Tabulator v4.0.1 (c) Oliver Folkerd */
+/* Tabulator v4.0.2 (c) Oliver Folkerd */
 
 ;(function (global, factory) {
 	if ((typeof exports === 'undefined' ? 'undefined' : _typeof(exports)) === 'object' && typeof module !== 'undefined') {
@@ -445,7 +445,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 				var match = self.columns.find(function (column) {
 
-					return column.element.is(subject);
+					return column.element === subject;
 				});
 
 				return match || false;
@@ -2508,7 +2508,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 				var match = self.rows.find(function (row) {
 
-					return row.element.is(subject);
+					return row.element === subject;
 				});
 
 				return match || false;
@@ -4749,7 +4749,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 	Row.prototype.calcHeight = function () {
 
 		var maxHeight = 0,
-		    minHeight = this.element.clientHeight;
+		    minHeight = this.table.options.resizableRows ? this.element.clientHeight : 0;
 
 		this.cells.forEach(function (cell) {
 
@@ -5993,7 +5993,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 	FooterManager.prototype.deactivate = function (force) {
 
-		if (this.element.is(":empty") || force) {
+		if (!this.element.firstChild || force) {
 
 			if (!this.external) {
 
@@ -9213,36 +9213,47 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 		});
 	};
 
-	Ajax.prototype.serializeParams = function (data, prefix) {
+	Ajax.prototype.generateParamsList = function (data, prefix) {
 		var self = this,
-		    output = [],
-		    encoded = [];
+		    output = [];
 
 		prefix = prefix || "";
 
 		if (Array.isArray(data)) {
-
 			data.forEach(function (item, i) {
-				output = output.concat(self.serializeParams(item, prefix ? prefix + "[" + i + "]" : i));
+				output = output.concat(self.generateParamsList(item, prefix ? prefix + "[" + i + "]" : i));
 			});
 		} else if ((typeof data === 'undefined' ? 'undefined' : _typeof(data)) === "object") {
-
 			for (var key in data) {
-				output = output.concat(self.serializeParams(data[key], prefix ? prefix + "[" + key + "]" : key));
+				output = output.concat(self.generateParamsList(data[key], prefix ? prefix + "[" + key + "]" : key));
 			}
 		} else {
-			output.push({ key: prefix, val: data });
+			output.push({ key: prefix, value: data });
 		}
 
-		if (prefix) {
-			return output;
-		} else {
-			output.forEach(function (item) {
-				encoded.push(encodeURIComponent(item.key) + "=" + encodeURIComponent(item.val));
-			});
+		return output;
+	};
 
-			return encoded.join("&");
-		}
+	Ajax.prototype.serializeParams = function (params) {
+		var output = this.generateParamsList(params),
+		    encoded = [];
+
+		output.forEach(function (item) {
+			encoded.push(encodeURIComponent(item.key) + "=" + encodeURIComponent(item.value));
+		});
+
+		return encoded.join("&");
+	};
+
+	Ajax.prototype.formDataParams = function (params) {
+		var output = this.generateParamsList(params),
+		    form = new FormData();
+
+		output.forEach(function (item) {
+			form.append(item.key, item.value);
+		});
+
+		return form;
 	};
 
 	//send ajax request
@@ -9349,18 +9360,15 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 	//default ajax config object
 	Ajax.prototype.defaultConfig = {
-		method: "GET",
-		headers: {
-			"Content-Type": "application/json; charset=utf-8"
-		}
+		method: "GET"
 	};
 
 	Ajax.prototype.defaultURLGenerator = function (url, config, params) {
 		if (params) {
-			if (!config.method || config.method == "get") {
+			if (!config.method || config.method.toLowerCase() == "get") {
 				url += "?" + this.serializeParams(params);
 			} else {
-				config.body = JSON.stringify(params);
+				config.body = this.formDataParams(params);
 			}
 		}
 
@@ -12362,7 +12370,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 	};
 
 	Format.prototype.emptyToSpace = function (value) {
-		return value === null ? "&nbsp" : value;
+		return value === null || typeof value === "undefined" ? "&nbsp" : value;
 	};
 
 	//get formatter for cell
@@ -12794,7 +12802,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 			    el = document.createElement("div");
 
 			function toggleList(isOpen) {
-				var collapse = cell.getRow().getElement().getElementsByClassName(".tabulator-responsive-collapse")[0];
+				var collapse = cell.getRow().getElement().getElementsByClassName("tabulator-responsive-collapse")[0];
+
 				open = isOpen;
 
 				if (open) {
@@ -12803,6 +12812,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 						collapse.style.display = '';
 					}
 				} else {
+					el.classList.remove("open");
 					if (collapse) {
 						collapse.style.display = 'none';
 					}
@@ -13648,7 +13658,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 		this.initialized = false;
 		this.height = 0;
 
-		if (this.element.is(":visible")) {
+		if (Tabulator.prototype.helpers.elVisible(this.element)) {
 			this.initialize(true);
 		}
 	};
