@@ -1,6 +1,6 @@
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-/* Tabulator v4.0.4 (c) Oliver Folkerd */
+/* Tabulator v4.0.5 (c) Oliver Folkerd */
 
 ;(function (global, factory) {
 	if ((typeof exports === 'undefined' ? 'undefined' : _typeof(exports)) === 'object' && typeof module !== 'undefined') {
@@ -1022,7 +1022,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 	ColumnComponent.prototype.scrollTo = function () {
 
-		return this._column.table.columManager.scrollToColumn(this._column);
+		return this._column.table.columnManager.scrollToColumn(this._column);
 	};
 
 	ColumnComponent.prototype.getTable = function () {
@@ -9100,7 +9100,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 	Ajax.prototype.createLoaderElement = function () {
 		var el = document.createElement("div");
-		el.classList.add("tablulator-loader");
+		el.classList.add("tabulator-loader");
 		return el;
 	};
 
@@ -10020,7 +10020,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 				if (sel.toString() && internal) {
 					selector = "userSelection";
 					formatter = "raw";
-					this.copySelectorParams = sel.toString();
+					selectorParams = sel.toString();
 				}
 
 				sel.removeAllRanges();
@@ -10045,7 +10045,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 	};
 
 	Clipboard.prototype.setSelector = function (selector) {
-
 		selector = selector || this.table.options.clipboardCopySelector;
 
 		switch (typeof selector === 'undefined' ? 'undefined' : _typeof(selector)) {
@@ -11685,6 +11684,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 	Filter.prototype.initializeColumn = function (column, value) {
 		var self = this,
 		    field = column.getField(),
+		    prevSuccess,
 		    params;
 
 		//handle successfull value change
@@ -11693,60 +11693,65 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 			    type = "",
 			    filterFunc;
 
-			if (!column.modules.filter.emptyFunc(value)) {
-				column.modules.filter.value = value;
+			if (typeof prevSuccess === "undefined" || prevSuccess !== value) {
 
-				switch (_typeof(column.definition.headerFilterFunc)) {
-					case "string":
-						if (self.filters[column.definition.headerFilterFunc]) {
-							type = column.definition.headerFilterFunc;
-							filterFunc = function filterFunc(data) {
-								return self.filters[column.definition.headerFilterFunc](value, column.getFieldValue(data));
-							};
-						} else {
-							console.warn("Header Filter Error - Matching filter function not found: ", column.definition.headerFilterFunc);
-						}
-						break;
+				prevSuccess = value;
 
-					case "function":
-						filterFunc = function filterFunc(data) {
-							var params = column.definition.headerFilterFuncParams || {};
-							var fieldVal = column.getFieldValue(data);
+				if (!column.modules.filter.emptyFunc(value)) {
+					column.modules.filter.value = value;
 
-							params = typeof params === "function" ? params(value, fieldVal, data) : params;
-
-							return column.definition.headerFilterFunc(value, fieldVal, data, params);
-						};
-
-						type = filterFunc;
-						break;
-				}
-
-				if (!filterFunc) {
-					switch (filterType) {
-						case "partial":
-							filterFunc = function filterFunc(data) {
-								return String(column.getFieldValue(data)).toLowerCase().indexOf(String(value).toLowerCase()) > -1;
-							};
-							type = "like";
+					switch (_typeof(column.definition.headerFilterFunc)) {
+						case "string":
+							if (self.filters[column.definition.headerFilterFunc]) {
+								type = column.definition.headerFilterFunc;
+								filterFunc = function filterFunc(data) {
+									return self.filters[column.definition.headerFilterFunc](value, column.getFieldValue(data));
+								};
+							} else {
+								console.warn("Header Filter Error - Matching filter function not found: ", column.definition.headerFilterFunc);
+							}
 							break;
 
-						default:
+						case "function":
 							filterFunc = function filterFunc(data) {
-								return column.getFieldValue(data) == value;
+								var params = column.definition.headerFilterFuncParams || {};
+								var fieldVal = column.getFieldValue(data);
+
+								params = typeof params === "function" ? params(value, fieldVal, data) : params;
+
+								return column.definition.headerFilterFunc(value, fieldVal, data, params);
 							};
-							type = "=";
+
+							type = filterFunc;
+							break;
 					}
+
+					if (!filterFunc) {
+						switch (filterType) {
+							case "partial":
+								filterFunc = function filterFunc(data) {
+									return String(column.getFieldValue(data)).toLowerCase().indexOf(String(value).toLowerCase()) > -1;
+								};
+								type = "like";
+								break;
+
+							default:
+								filterFunc = function filterFunc(data) {
+									return column.getFieldValue(data) == value;
+								};
+								type = "=";
+						}
+					}
+
+					self.headerFilters[field] = { value: value, func: filterFunc, type: type };
+				} else {
+					delete self.headerFilters[field];
 				}
 
-				self.headerFilters[field] = { value: value, func: filterFunc, type: type };
-			} else {
-				delete self.headerFilters[field];
+				self.changed = true;
+
+				self.table.rowManager.filterRefresh();
 			}
-
-			self.changed = true;
-
-			self.table.rowManager.filterRefresh();
 		}
 
 		column.modules.filter = {
@@ -11859,7 +11864,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 					});
 				} else {
 					self.table.modules.localize.bind("headerFilters|default", function (value) {
-						editorElement.setAttribute("placeholdder", typeof self.column.definition.headerFilterPlaceholder !== "undefined" && self.column.definition.headerFilterPlaceholder ? self.column.definition.headerFilterPlaceholder : value);
+						editorElement.setAttribute("placeholder", typeof self.column.definition.headerFilterPlaceholder !== "undefined" && self.column.definition.headerFilterPlaceholder ? self.column.definition.headerFilterPlaceholder : value);
 					});
 				}
 
@@ -12565,7 +12570,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 				element.setAttribute("aria-checked", true);
 				return tick;
 			} else {
-				if (empty && (value === "null" || value === null || typeof value === "undefined")) {
+				if (empty && (value === "null" || value === "" || value === null || typeof value === "undefined")) {
 					element.setAttribute("aria-checked", "mixed");
 					return "";
 				} else {
@@ -14076,13 +14081,15 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 		    options = self.table.options,
 		    columns = options.columns,
 		    headers = element.getElementsByTagName("th"),
-		    rows = element.getElementsByTagName("tbody")[0].getElementsByTagName("tr"),
+		    rows = element.getElementsByTagName("tbody")[0],
 		    data = [],
 		    newTable;
 
 		self.hasIndex = false;
 
 		self.table.options.htmlImporting.call(this.table);
+
+		rows = rows ? rows.getElementsByTagName("tr") : [];
 
 		//check for tablator inline options
 		self._extractOptions(element, options);
@@ -14141,7 +14148,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 		this.table.element = newElement;
 	};
 
-	//extract tabluator attribute options
+	//extract tabulator attribute options
 	HtmlTableImport.prototype._extractOptions = function (element, options) {
 		var attributes = element.attributes;
 
@@ -15095,7 +15102,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 			self.table.rowManager.getDisplayRows().forEach(function (row) {
 				if (row.type === "row" && row.modules.moveRow && row.modules.moveRow.mouseup) {
-					row.getElement.addEventListener("mouseup", row.modules.moveRow.mouseup);
+					row.getElement().addEventListener("mouseup", row.modules.moveRow.mouseup);
 				}
 			});
 
@@ -15798,49 +15805,49 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 		    data,
 		    margin;
 
-		if (data[this.paginationDataReceivedNames.last_page]) {
-			if (data[this.paginationDataReceivedNames.data]) {
-				this.max = parseInt(data[this.paginationDataReceivedNames.last_page]);
+		if (typeof data[this.paginationDataReceivedNames.last_page] === "undefined") {
+			console.warn("Remote Pagination Error - Server response missing '" + this.paginationDataReceivedNames.last_page + "' property");
+		}
 
-				if (this.progressiveLoad) {
-					switch (this.mode) {
-						case "progressive_load":
-							this.table.rowManager.addRows(data[this.paginationDataReceivedNames.data]);
-							if (this.page < this.max) {
-								setTimeout(function () {
-									self.nextPage();
-								}, self.table.options.ajaxProgressiveLoadDelay);
-							}
-							break;
+		if (data[this.paginationDataReceivedNames.data]) {
+			this.max = parseInt(data[this.paginationDataReceivedNames.last_page]) || 1;
 
-						case "progressive_scroll":
-							data = this.table.rowManager.getData().concat(data[this.paginationDataReceivedNames.data]);
-
-							this.table.rowManager.setData(data, true);
-
-							margin = this.table.options.ajaxProgressiveLoadScrollMargin || this.table.rowManager.element.clientHeight * 2;
-
-							if (self.table.rowManager.element.scrollHeight <= self.table.rowManager.element.clientHeight + margin) {
+			if (this.progressiveLoad) {
+				switch (this.mode) {
+					case "progressive_load":
+						this.table.rowManager.addRows(data[this.paginationDataReceivedNames.data]);
+						if (this.page < this.max) {
+							setTimeout(function () {
 								self.nextPage();
-							}
-							break;
-					}
-				} else {
-					left = this.table.rowManager.scrollLeft;
+							}, self.table.options.ajaxProgressiveLoadDelay);
+						}
+						break;
 
-					this.table.rowManager.setData(data[this.paginationDataReceivedNames.data]);
+					case "progressive_scroll":
+						data = this.table.rowManager.getData().concat(data[this.paginationDataReceivedNames.data]);
 
-					this.table.rowManager.scrollHorizontal(left);
+						this.table.rowManager.setData(data, true);
 
-					this.table.columnManager.scrollHorizontal(left);
+						margin = this.table.options.ajaxProgressiveLoadScrollMargin || this.table.rowManager.element.clientHeight * 2;
 
-					this.table.options.pageLoaded.call(this.table, this.getPage());
+						if (self.table.rowManager.element.scrollHeight <= self.table.rowManager.element.clientHeight + margin) {
+							self.nextPage();
+						}
+						break;
 				}
 			} else {
-				console.warn("Remote Pagination Error - Server response missing '" + this.paginationDataReceivedNames.data + "' property");
+				left = this.table.rowManager.scrollLeft;
+
+				this.table.rowManager.setData(data[this.paginationDataReceivedNames.data]);
+
+				this.table.rowManager.scrollHorizontal(left);
+
+				this.table.columnManager.scrollHorizontal(left);
+
+				this.table.options.pageLoaded.call(this.table, this.getPage());
 			}
 		} else {
-			console.warn("Remote Pagination Error - Server response missing '" + this.paginationDataReceivedNames.last_page + "' property");
+			console.warn("Remote Pagination Error - Server response missing '" + this.paginationDataReceivedNames.data + "' property");
 		}
 	};
 
