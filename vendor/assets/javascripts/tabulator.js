@@ -1,6 +1,6 @@
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-/* Tabulator v4.1.0 (c) Oliver Folkerd */
+/* Tabulator v4.1.1 (c) Oliver Folkerd */
 
 ;(function (global, factory) {
 	if ((typeof exports === 'undefined' ? 'undefined' : _typeof(exports)) === 'object' && typeof module !== 'undefined') {
@@ -6345,7 +6345,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 		selectable: "highlight", //highlight rows on hover
 
-		selectableRangeType: "drag", //highlight rows on hover
+		selectableRangeMode: "drag", //highlight rows on hover
 
 		selectableRollingSelection: true, //roll selection once maximum number of selectable rows is reached
 
@@ -12759,12 +12759,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 							el = document.createElement("div");
 							el.classList.add("tabulator-edit-select-list-group");
 							el.tabIndex = 0;
-							el.innerHTML = item.label;
+							el.innerHTML = item.label === "" ? "&nbsp;" : item.label;
 						} else {
 							el = document.createElement("div");
 							el.classList.add("tabulator-edit-select-list-item");
 							el.tabIndex = 0;
-							el.innerHTML = item.label;
+							el.innerHTML = item.label === "" ? "&nbsp;" : item.label;
 
 							el.addEventListener("click", function () {
 								setCurrentItem(item);
@@ -12798,7 +12798,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 				}
 
 				currentItem = item;
-				input.value = item.label;
+				input.value = item.label === "&nbsp;" ? "" : item.label;
 
 				if (item.element) {
 					item.element.classList.add("active");
@@ -12809,6 +12809,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 				hideList();
 
 				if (initialValue !== currentItem.value) {
+					initialValue = currentItem.value;
 					success(currentItem.value);
 				} else {
 					cancel();
@@ -13707,6 +13708,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 					getElement: function getElement() {
 						return filterElement;
 					},
+					getColumn: function getColumn() {
+						return column.getComponent();
+					},
 					getRow: function getRow() {
 						return {
 							normalizeHeight: function normalizeHeight() {}
@@ -14235,8 +14239,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 				if (column.definition.formatter === "tick") {
 					column.definition.formatter = "tickCross";
 
-					if (typeof column.definition.formatterParams.crossElement == "undefined") {
-						column.definition.formatterParams.crossElement = false;
+					if (typeof config.params.crossElement == "undefined") {
+						config.params.crossElement = false;
 					}
 
 					console.warn("DEPRICATION WANRING - the tick formatter has been depricated, please use the tickCross formatter with the crossElement param set to false");
