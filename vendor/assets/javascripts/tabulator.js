@@ -1,6 +1,6 @@
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-/* Tabulator v4.1.1 (c) Oliver Folkerd */
+/* Tabulator v4.1.2 (c) Oliver Folkerd */
 
 ;(function (global, factory) {
 	if ((typeof exports === 'undefined' ? 'undefined' : _typeof(exports)) === 'object' && typeof module !== 'undefined') {
@@ -4045,7 +4045,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 			if (forceMove) {
 
-				this.scrollTop = self.vDomTopPad + topPadHeight + offset;
+				this.scrollTop = self.vDomTopPad + topPadHeight + offset - (this.element.scrollWidth > this.element.clientWidth ? this.element.offsetHeight - this.element.clientHeight : 0);
 			}
 
 			this.scrollTop = Math.min(this.scrollTop, this.element.scrollHeight - this.height);
@@ -9429,7 +9429,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 			margin = this.table.options.ajaxProgressiveLoadScrollMargin || this.table.rowManager.getElement().clientHeight * 2;
 
 			if (diff < margin) {
-				this.table.modules.page.nextPage();
+				this.table.modules.page.nextPage().then(function () {}).catch(function () {});
 			}
 		}
 	};
@@ -9922,7 +9922,17 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 	ColumnCalcs.prototype.generateRow = function (pos, data) {
 		var self = this,
 		    rowData = this.generateRowData(pos, data),
-		    row = new Row(rowData, this);
+		    row;
+
+		if (self.table.modExists("mutator")) {
+			self.table.modules.mutator.disable();
+		}
+
+		row = new Row(rowData, this);
+
+		if (self.table.modExists("mutator")) {
+			self.table.modules.mutator.enable();
+		}
 
 		row.getElement().classList.add("tabulator-calcs", "tabulator-calcs-" + pos);
 		row.type = "calc";
@@ -10212,7 +10222,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 		if (typeof this.table.options.clipboardCopyHeader !== "undefined") {
 			config.columnHeaders = this.table.options.clipboardCopyHeader;
-			console.warn("DEPRICATION WANRING - clipboardCopyHeader option has been depricated, please use the columnHeaders property on the clipboardCopyConfig option");
+			console.warn("DEPRECATION WANRING - clipboardCopyHeader option has been depricated, please use the columnHeaders property on the clipboardCopyConfig option");
 		}
 
 		if (this.table.options.clipboardCopyConfig) {
@@ -12115,7 +12125,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 				if (column.definition.editor === "tick") {
 					column.definition.editor = "tickCross";
-					console.warn("DEPRICATION WANRING - the tick editor has been depricated, please use the tickCross editor");
+					console.warn("DEPRECATION WANRING - the tick editor has been depricated, please use the tickCross editor");
 				}
 
 				if (self.editors[column.definition.editor]) {
@@ -12137,7 +12147,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 						if (column.definition.formatter === "tick") {
 							column.definition.formatter = "tickCross";
-							console.warn("DEPRICATION WANRING - the tick editor has been depricated, please use the tickCross editor");
+							console.warn("DEPRECATION WANRING - the tick editor has been depricated, please use the tickCross editor");
 						}
 
 						if (self.editors[column.definition.formatter]) {
@@ -12321,7 +12331,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 					this.mouseClick = false;
 
 					if (cell.column.cellEvents.cellClick) {
-						cell.column.cellEvents.cellClick.call(this.table, component);
+						cell.column.cellEvents.cellClick.call(this.table, e, component);
 					}
 				}
 
@@ -12643,7 +12653,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 			    blurable = true;
 
 			if (Array.isArray(editorParams) || !Array.isArray(editorParams) && (typeof editorParams === 'undefined' ? 'undefined' : _typeof(editorParams)) === "object" && !editorParams.values) {
-				console.warn("DEPRICATION WANRING - values for the select editor must now be passed into the valuse property of the editorParams object, not as the editorParams object");
+				console.warn("DEPRECATION WANRING - values for the select editor must now be passed into the values property of the editorParams object, not as the editorParams object");
 				editorParams = { values: editorParams };
 			}
 
@@ -13492,16 +13502,24 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 			input.checked = value === true || value === "true" || value === "True" || value === 1;
 
-			function setValue() {
+			function setValue(blur) {
 				if (tristate) {
-					if (input.checked && !indetermState) {
-						input.checked = false;
-						input.indeterminate = true;
-						indetermState = true;
-						return indetermValue;
+					if (!blur) {
+						if (input.checked && !indetermState) {
+							input.checked = false;
+							input.indeterminate = true;
+							indetermState = true;
+							return indetermValue;
+						} else {
+							indetermState = false;
+							return input.checked;
+						}
 					} else {
-						indetermState = false;
-						return input.checked;
+						if (indetermState) {
+							return indetermValue;
+						} else {
+							return input.checked;
+						}
 					}
 				} else {
 					return input.checked;
@@ -13514,7 +13532,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 			});
 
 			input.addEventListener("blur", function (e) {
-				success(setValue());
+				success(setValue(true));
 			});
 
 			//submit new value on enter
@@ -14243,7 +14261,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 						config.params.crossElement = false;
 					}
 
-					console.warn("DEPRICATION WANRING - the tick formatter has been depricated, please use the tickCross formatter with the crossElement param set to false");
+					console.warn("DEPRECATION WANRING - the tick formatter has been depricated, please use the tickCross formatter with the crossElement param set to false");
 				}
 
 				if (self.formatters[column.definition.formatter]) {
@@ -14867,6 +14885,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 				self.layoutColumn(column);
 			});
+
+			this.table.rowManager.tableElement.style.marginRight = this.rightMargin + "px";
 		}
 	};
 
@@ -17310,6 +17330,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 	var Mutator = function Mutator(table) {
 		this.table = table; //hold Tabulator object
 		this.allowedTypes = ["", "data", "edit", "clipboard"]; //list of muatation types
+		this.enabled = true;
 	};
 
 	//initialize column mutator
@@ -17368,23 +17389,26 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 		    key = "mutator" + (type.charAt(0).toUpperCase() + type.slice(1)),
 		    value;
 
-		self.table.columnManager.traverse(function (column) {
-			var mutator, params, component;
+		if (this.enabled) {
 
-			if (column.modules.mutate) {
-				mutator = column.modules.mutate[key] || column.modules.mutate.mutator || false;
+			self.table.columnManager.traverse(function (column) {
+				var mutator, params, component;
 
-				if (mutator) {
-					value = column.getFieldValue(data);
+				if (column.modules.mutate) {
+					mutator = column.modules.mutate[key] || column.modules.mutate.mutator || false;
 
-					if (!update || update && typeof value !== "undefined") {
-						component = column.getComponent();
-						params = typeof mutator.params === "function" ? mutator.params(value, data, type, component) : mutator.params;
-						column.setFieldValue(data, mutator.mutator(value, data, type, params, component));
+					if (mutator) {
+						value = column.getFieldValue(data);
+
+						if (!update || update && typeof value !== "undefined") {
+							component = column.getComponent();
+							params = typeof mutator.params === "function" ? mutator.params(value, data, type, component) : mutator.params;
+							column.setFieldValue(data, mutator.mutator(value, data, type, params, component));
+						}
 					}
 				}
-			}
-		});
+			});
+		}
 
 		return data;
 	};
@@ -17398,6 +17422,14 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 		} else {
 			return value;
 		}
+	};
+
+	Mutator.prototype.enable = function () {
+		this.enabled = true;
+	};
+
+	Mutator.prototype.disable = function () {
+		this.enabled = false;
 	};
 
 	//default mutators
@@ -17513,7 +17545,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 		});
 
 		self.nextBut.addEventListener("click", function () {
-			self.nextPage();
+			self.nextPage().then(function () {}).catch(function () {});
 		});
 
 		self.lastBut.addEventListener("click", function () {
@@ -17864,7 +17896,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 						this.table.rowManager.addRows(data[this.paginationDataReceivedNames.data]);
 						if (this.page < this.max) {
 							setTimeout(function () {
-								self.nextPage();
+								self.nextPage().then(function () {}).catch(function () {});
 							}, self.table.options.ajaxProgressiveLoadDelay);
 						}
 						break;
@@ -17877,7 +17909,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 						margin = this.table.options.ajaxProgressiveLoadScrollMargin || this.table.rowManager.element.clientHeight * 2;
 
 						if (self.table.rowManager.element.scrollHeight <= self.table.rowManager.element.clientHeight + margin) {
-							self.nextPage();
+							self.nextPage().then(function () {}).catch(function () {});
 						}
 						break;
 				}
@@ -18414,7 +18446,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 	//generate resposive columns list
 	ResponsiveLayout.prototype.initialize = function () {
-		var columns = [];
+		var self = this,
+		    columns = [];
 
 		this.mode = this.table.options.responsiveLayout;
 		this.collapseFormatter = this.table.options.responsiveLayoutCollapseFormatter || this.formatCollapsedData;
@@ -18428,8 +18461,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 					column.modules.responsive.index = i;
 					columns.push(column);
 
-					if (!column.visible && this.mode === "collapse") {
-						this.hiddenColumns.push(column);
+					if (!column.visible && self.mode === "collapse") {
+						self.hiddenColumns.push(column);
 					}
 				}
 			}
@@ -18642,6 +18675,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 	};
 
 	Tabulator.prototype.registerModule("responsiveLayout", ResponsiveLayout);
+
 	var SelectRow = function SelectRow(table) {
 		this.table = table; //hold Tabulator object
 		this.selecting = false; //flag selecting in progress
